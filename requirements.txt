@@ -1,8 +1,8 @@
-# Recommended interpreter: Python 3.10-3.12.
-# Python 3.13 can force source builds for some pinned scientific packages on Windows.
+# Recommended interpreter: Python 3.12 for Streamlit Community Cloud.
+# Python 3.13+ can force incompatible source builds for this pinned scientific stack.
 ultralytics==8.2.103
 opencv-python==4.9.0.80
-numpy==1.24.0
+numpy==1.26.4
 pandas==2.2.2
 PyYAML==6.0.1
 yt-dlp==2024.8.6
