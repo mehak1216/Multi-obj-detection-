@@ -536,10 +536,10 @@ def render_artifact_downloads(summary: dict[str, object]) -> None:
                     data=path.read_bytes(),
                     file_name=path.name,
                     mime=mime,
-                    width="stretch",
+                    use_container_width=True,
                 )
             else:
-                st.button(f"{label} Missing", disabled=True, width="stretch")
+                st.button(f"{label} Missing", disabled=True, use_container_width=True)
 
 
 def render_media_tab(summary: dict[str, object]) -> None:
@@ -575,7 +575,7 @@ def render_media_tab(summary: dict[str, object]) -> None:
             unsafe_allow_html=True,
         )
         if image_path.exists():
-            st.image(str(image_path), width="stretch")
+            st.image(str(image_path), use_container_width=True)
         else:
             st.warning("The trajectory summary image was not found.")
         st.markdown("</div>", unsafe_allow_html=True)
@@ -590,7 +590,7 @@ def render_data_tab(summary: dict[str, object], dataframe: pd.DataFrame | None) 
         unsafe_allow_html=True,
     )
     if dataframe is not None and not dataframe.empty:
-        st.dataframe(dataframe.head(500), width="stretch", height=360)
+        st.dataframe(dataframe.head(500), use_container_width=True, height=360)
     else:
         st.info("Tracking CSV data is not available for preview.")
 
@@ -598,7 +598,7 @@ def render_data_tab(summary: dict[str, object], dataframe: pd.DataFrame | None) 
     metadata_df = pd.DataFrame(
         [{"field": key, "value": str(value)} for key, value in summary.items()]
     )
-    st.dataframe(metadata_df, width="stretch", height=260)
+    st.dataframe(metadata_df, use_container_width=True, height=260)
 
 
 def render_json_tab(summary: dict[str, object]) -> None:
@@ -629,7 +629,7 @@ def render_json_tab(summary: dict[str, object]) -> None:
         data=formatted_json.encode("utf-8"),
         file_name=json_path.name if json_path.exists() else "run_summary.json",
         mime="application/json",
-        width="stretch",
+        use_container_width=True,
     )
 
 
@@ -777,7 +777,7 @@ def main() -> None:
                     help="0 means the full video.",
                 )
 
-            start_run = st.form_submit_button("Run Tracking", width="stretch")
+            start_run = st.form_submit_button("Run Tracking", use_container_width=True)
 
     summary_to_render: dict[str, object] | None = None
 
