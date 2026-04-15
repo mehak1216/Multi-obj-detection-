@@ -1,0 +1,19 @@
+# Ultralytics tracker configuration for persistent sports-subject tracking.
+# BoT-SORT is selected instead of ByteTrack because it adds:
+# 1. Global motion compensation for panning/zooming cameras
+# 2. Appearance matching (ReID) to reduce ID switches for similar-looking subjects
+# 3. Better identity recovery after short occlusions and partial visibility
+
+tracker_type: botsort
+track_high_thresh: 0.35
+track_low_thresh: 0.10
+new_track_thresh: 0.35
+track_buffer: 120
+match_thresh: 0.80
+fuse_score: true
+
+gmc_method: sparseOptFlow
+proximity_thresh: 0.50
+appearance_thresh: 0.30
+with_reid: true
+model: auto

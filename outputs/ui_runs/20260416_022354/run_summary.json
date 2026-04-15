@@ -1,0 +1,15 @@
+{
+  "input_video": "C:\\Users\\hp\\Downloads\\Multi-Object Detection\\Multi-Object Detection (2)\\assets\\public_sports_video.mp4",
+  "source_url": "https://pixabay.com/videos/running-people-sports-run-walk-294/",
+  "downloaded_from_public_source": true,
+  "model_weights": "yolo11n.pt",
+  "tracker_config": "C:\\Users\\hp\\Downloads\\Multi-Object Detection\\Multi-Object Detection (2)\\configs\\botsort_reid.yaml",
+  "output_video": "C:\\Users\\hp\\Downloads\\Multi-Object Detection\\Multi-Object Detection (2)\\outputs\\ui_runs\\20260416_022354\\output_tracked.mp4",
+  "tracking_csv": "C:\\Users\\hp\\Downloads\\Multi-Object Detection\\Multi-Object Detection (2)\\outputs\\ui_runs\\20260416_022354\\tracking_data.csv",
+  "trajectory_image": "C:\\Users\\hp\\Downloads\\Multi-Object Detection\\Multi-Object Detection (2)\\outputs\\ui_runs\\20260416_022354\\trajectory_summary.png",
+  "summary_json": "C:\\Users\\hp\\Downloads\\Multi-Object Detection\\Multi-Object Detection (2)\\outputs\\ui_runs\\20260416_022354\\run_summary.json",
+  "frames_processed": 741,
+  "total_unique_ids": 38,
+  "processing_time_seconds": 612.19,
+  "avg_fps": 1.21
+}
