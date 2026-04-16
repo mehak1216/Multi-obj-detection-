@@ -2,8 +2,8 @@
 # Python 3.13+ can force incompatible source builds for this pinned scientific stack.
 # Keep Ultralytics new enough for the default YOLO11 weights used by the app.
 ultralytics==8.4.37
-# Use the headless build for Streamlit/server deployments where GUI libs are unavailable.
-opencv-python-headless==4.9.0.80
+# Use a newer headless build with solid Python 3.12/Linux wheel support for Streamlit Cloud.
+opencv-python-headless==4.10.0.84
 numpy==1.26.4
 pandas==2.2.2
 PyYAML==6.0.1
