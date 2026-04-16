@@ -77,7 +77,12 @@ Run with the default public source:
 
 ```bash
 python main.py
- python main.py --video-path "/Users/riteshsingh/Downloads/294-135882925.mp4" --video-source-link "https://pixabay.com/videos/running-people-sports-run-walk-294/"
+```
+
+Use a manually downloaded local copy of the default sample while preserving the original public source link:
+
+```bash
+python main.py --video-path "/absolute/path/to/294-135882925.mp4" --video-source-link "https://pixabay.com/videos/running-people-sports-run-walk-294/"
 ```
 
 The default profile now favors speed by using `yolo11n.pt` and `--image-size 640`. If the nano weights are not present locally, Ultralytics will download them on the first run. Because `yolo11n.pt` requires a newer Ultralytics release, keep the installed package aligned with `requirements.txt` or switch to an older weight such as `yolov8n.pt`.
@@ -137,6 +142,13 @@ CSV columns:
 - Trajectory rendering is intentionally short-term rather than full-length to avoid cluttering the output video.
 - Public video downloads are cached in `assets/` so repeated runs do not need to re-download the same clip.
 - The JSON run summary records the public source URL so it can be included directly in the submission.
+
+## Assumptions
+
+- The main subjects of interest are people in a sports or public event setting, so the default detector configuration tracks COCO class `0` (`person`).
+- Identity persistence is expected to hold through short-to-medium occlusions, overlaps, pans, and zooms, but not perfectly through very long disappearances or hard scene cuts.
+- The input video is publicly accessible or can be downloaded once and then processed locally while preserving the original public source link in the summary JSON.
+- For browser deployment environments, output preview compatibility may differ by available codecs, so the app also surfaces image-based artifacts and a lightweight preview flow.
 
 ## Known limitations
 
