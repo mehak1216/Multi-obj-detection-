@@ -4,6 +4,7 @@ __pycache__/
 
 outputs/
 assets/*.mp4
+!assets/public_sports_video.mp4
 assets/ui_uploads/
 
 *.pt
