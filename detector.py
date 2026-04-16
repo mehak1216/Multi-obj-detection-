@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
@@ -96,8 +97,22 @@ class YOLODetector:
         if candidate.parent != Path("."):
             return weights
 
+        destination = Path.cwd() / candidate.name
+        if destination.exists():
+            return str(destination.resolve())
+
         try:
-            downloaded = attempt_download_asset(weights)
+            downloaded = Path(attempt_download_asset(str(destination)))
         except Exception:
-            return weights
-        return str(Path(downloaded).resolve())
+            try:
+                downloaded = Path(attempt_download_asset(weights))
+            except Exception:
+                return weights
+
+        if downloaded.exists():
+            if downloaded.resolve() != destination.resolve():
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(downloaded, destination)
+            return str(destination.resolve())
+
+        return weights
