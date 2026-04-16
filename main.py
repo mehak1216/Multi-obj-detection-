@@ -11,6 +11,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+from PIL import Image
 from ultralytics.utils.downloads import attempt_download_asset
 
 from detector import YOLODetector
@@ -25,6 +26,7 @@ DEFAULT_IMAGE_SIZE = 640
 DEFAULT_OUTPUT_VIDEO = "outputs/output_tracked.mp4"
 DEFAULT_OUTPUT_CSV = "outputs/tracking_data.csv"
 DEFAULT_TRAJECTORY_IMAGE = "outputs/trajectory_summary.png"
+DEFAULT_PREVIEW_GIF = "outputs/output_preview.gif"
 DEFAULT_SUMMARY_JSON = "outputs/run_summary.json"
 DEFAULT_DOWNLOAD_DIR = "assets"
 
@@ -209,6 +211,25 @@ def write_summary(summary_path: Path, summary: dict[str, float | int | str | boo
         json.dump(summary, handle, indent=2)
 
 
+def export_preview_gif(preview_path: Path, frames: list[np.ndarray], fps: float) -> None:
+    """Write a lightweight browser-safe animated preview for environments without H.264 encoding."""
+
+    if not frames:
+        return
+
+    preview_path.parent.mkdir(parents=True, exist_ok=True)
+    pil_frames = [Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)) for frame in frames]
+    frame_duration_ms = max(int(1000 / max(fps, 1.0)), 40)
+    pil_frames[0].save(
+        preview_path,
+        save_all=True,
+        append_images=pil_frames[1:],
+        duration=frame_duration_ms,
+        loop=0,
+        optimize=False,
+    )
+
+
 def run_pipeline(args: argparse.Namespace) -> dict[str, float | int | str | bool]:
     """Run the full detection, tracking, annotation, and export pipeline."""
 
@@ -251,6 +272,7 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, float | int | str | bool
     output_video_path = Path(args.output_video).expanduser().resolve()
     output_csv_path = Path(args.output_csv).expanduser().resolve()
     trajectory_image_path = Path(args.trajectory_image).expanduser().resolve()
+    preview_gif_path = output_video_path.with_name("output_preview.gif")
     summary_json_path = Path(args.summary_json).expanduser().resolve()
 
     writer = build_writer(output_video_path, fps, width, height)
@@ -258,6 +280,7 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, float | int | str | bool
 
     frame_index = 0
     last_annotated_frame = np.zeros((height, width, 3), dtype=np.uint8)
+    preview_frames: list[np.ndarray] = []
     start_time = time.perf_counter()
 
     try:
@@ -273,6 +296,10 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, float | int | str | bool
 
             writer.write(annotated)
             write_tracking_rows(csv_writer, frame_index, tracks)
+            if len(preview_frames) < 90 and frame_index % 4 == 0:
+                preview_frames.append(
+                    cv2.resize(annotated, (min(width, 720), int(height * min(width, 720) / width)))
+                )
 
             if args.max_frames is not None and frame_index >= args.max_frames:
                 LOGGER.info("Reached --max-frames=%s, stopping early.", args.max_frames)
@@ -305,6 +332,7 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, float | int | str | bool
         str(trajectory_image_path),
         visualizer.export_trajectory_summary(last_annotated_frame),
     )
+    export_preview_gif(preview_gif_path, preview_frames, fps / 4 if fps > 0 else 6.0)
 
     summary = {
         "input_video": str(source.source_path),
@@ -313,6 +341,7 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, float | int | str | bool
         "model_weights": model_weights,
         "tracker_config": str(Path(args.tracker_config).expanduser().resolve()),
         "output_video": str(output_video_path),
+        "preview_gif": str(preview_gif_path),
         "tracking_csv": str(output_csv_path),
         "trajectory_image": str(trajectory_image_path),
         "summary_json": str(summary_json_path),

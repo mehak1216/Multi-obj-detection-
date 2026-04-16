@@ -552,6 +552,7 @@ def render_media_tab(summary: dict[str, object]) -> None:
     """Render video and image outputs."""
 
     video_path = Path(str(summary["output_video"]))
+    preview_gif_path = Path(str(summary.get("preview_gif", ""))) if summary.get("preview_gif") else None
     image_path = Path(str(summary["trajectory_image"]))
 
     left, right = st.columns([1.35, 1.0], gap="large")
@@ -562,11 +563,16 @@ def render_media_tab(summary: dict[str, object]) -> None:
             '<p class="section-note">Rendered output with persistent IDs and trajectories overlaid.</p>',
             unsafe_allow_html=True,
         )
+        if preview_gif_path is not None and preview_gif_path.exists():
+            st.markdown("#### Browser Preview")
+            st.image(str(preview_gif_path), use_column_width=True)
+            st.caption("Animated GIF preview for browsers/environments that cannot play the encoded MP4 inline.")
         if video_path.exists():
+            st.markdown("#### Full Output Video")
             st.video(str(video_path))
             st.caption(
                 "If the player stays at 0:00, the file was likely encoded with a codec your browser cannot preview inline. "
-                "Use the download button below or rerun after the app writes an H.264-compatible MP4."
+                "Use the GIF preview above or the download button below."
             )
         else:
             st.warning("The output video was not found.")
