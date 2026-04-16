@@ -13,6 +13,15 @@ from urllib.request import Request, urlopen, urlretrieve
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError
 
+_BROWSER_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
 
 @dataclass(frozen=True)
 class VideoSource:
@@ -71,21 +80,25 @@ def download_video(video_url: str, download_dir: str) -> Path:
         if existing_file.suffix.lower() in {".mp4", ".mov", ".m4v", ".avi", ".webm", ".mkv"}:
             return existing_file.resolve()
 
+    # Pixabay page URLs are often easier to resolve by extracting the direct CDN MP4
+    # ourselves instead of relying on a generic downloader path that may be blocked.
+    pixabay_fallback = _download_pixabay_video(video_url, target_dir)
+    if pixabay_fallback is not None:
+        return pixabay_fallback
+
     ydl_opts = {
         "format": "mp4/bestvideo+bestaudio/best",
         "merge_output_format": "mp4",
         "noplaylist": True,
         "outtmpl": output_template,
         "quiet": True,
+        "http_headers": _BROWSER_HEADERS,
         "extractor_args": {"generic": {"impersonate": ["chrome"]}},
     }
 
     try:
         downloaded_file = _download_with_ytdlp(video_url, ydl_opts)
     except DownloadError as exc:
-        pixabay_fallback = _download_pixabay_video(video_url, target_dir)
-        if pixabay_fallback is not None:
-            return pixabay_fallback
         raise RuntimeError(
             "Automatic download failed for the provided page URL. "
             "Some hosting sites block scripted downloads. "
@@ -125,15 +138,7 @@ def _download_pixabay_video(video_url: str, target_dir: Path) -> Path | None:
     if "pixabay.com" not in parsed.netloc:
         return None
 
-    request = Request(
-        video_url,
-        headers={
-            "User-Agent": (
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
-            )
-        },
-    )
+    request = Request(video_url, headers=_BROWSER_HEADERS)
     with urlopen(request) as response:
         page_html = response.read().decode("utf-8", errors="ignore")
 
@@ -141,8 +146,7 @@ def _download_pixabay_video(video_url: str, target_dir: Path) -> Path | None:
     if direct_url is None:
         return None
 
-    filename = Path(urlparse(direct_url).path).name or "pixabay_video.mp4"
-    destination = target_dir / filename
+    destination = target_dir / "public_sports_video.mp4"
     if destination.exists():
         return destination.resolve()
 
@@ -150,10 +154,8 @@ def _download_pixabay_video(video_url: str, target_dir: Path) -> Path | None:
         direct_url,
         destination,
         headers={
-            "User-Agent": (
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
-            ),
+            **_BROWSER_HEADERS,
+            "Accept": "video/webm,video/mp4,application/octet-stream,*/*;q=0.8",
             "Referer": video_url,
         },
     )
@@ -164,6 +166,8 @@ def _extract_direct_video_url(page_html: str) -> str | None:
     """Extract a direct MP4 URL from provider HTML when available."""
 
     patterns = [
+        r'<source[^>]+src="(https://cdn\.pixabay\.com/video/[^"]+?\.mp4)"',
+        r'<video[^>]+src="(https://cdn\.pixabay\.com/video/[^"]+?\.mp4)"',
         r'https:\\/\\/cdn\.pixabay\.com\\/video\\/[^"]+?\.mp4',
         r'https://cdn\.pixabay\.com/video/[^"\']+?\.mp4',
         r'"contentUrl"\s*:\s*"([^"]+?\.mp4)"',
