@@ -578,7 +578,7 @@ def render_media_tab(summary: dict[str, object]) -> None:
             unsafe_allow_html=True,
         )
         if image_path.exists():
-            st.image(str(image_path), use_container_width=True)
+            st.image(str(image_path), use_column_width=True)
         else:
             st.warning("The trajectory summary image was not found.")
 
