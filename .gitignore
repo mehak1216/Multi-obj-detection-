@@ -8,6 +8,7 @@ assets/*.mp4
 assets/ui_uploads/
 
 *.pt
+!yolo11n.pt
 
 .DS_Store
 Thumbs.db

@@ -34,7 +34,12 @@ class PersistentTracker:
 
     def __init__(self, detector: YOLODetector, tracker_config: str) -> None:
         self.detector = detector
-        self.tracker_config = str(Path(tracker_config).resolve())
+        config_path = Path(tracker_config).expanduser()
+        if not config_path.is_absolute():
+            project_candidate = Path(__file__).resolve().parent / config_path
+            if project_candidate.exists():
+                config_path = project_candidate
+        self.tracker_config = str(config_path.resolve())
         self.seen_track_ids: set[int] = set()
 
     def track(self, frame: np.ndarray) -> list[TrackedObject]:

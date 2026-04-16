@@ -11,6 +11,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+from ultralytics.utils.downloads import attempt_download_asset
 
 from detector import YOLODetector
 from tracker import PersistentTracker, TrackedObject
@@ -28,6 +29,27 @@ DEFAULT_SUMMARY_JSON = "outputs/run_summary.json"
 DEFAULT_DOWNLOAD_DIR = "assets"
 
 LOGGER = logging.getLogger("sports_tracking")
+
+
+def resolve_model_weights(weights: str) -> str:
+    """Resolve local model weights, downloading the default asset when missing."""
+
+    candidate = Path(weights).expanduser()
+    if candidate.exists():
+        return str(candidate.resolve())
+
+    # Only auto-download bare asset names like "yolo11n.pt".
+    if candidate.parent != Path("."):
+        return weights
+
+    destination = Path.cwd() / candidate.name
+    if destination.exists():
+        return str(destination.resolve())
+
+    downloaded = Path(attempt_download_asset(str(destination)))
+    if downloaded.exists():
+        return str(downloaded.resolve())
+    return weights
 
 
 def parse_args() -> argparse.Namespace:
@@ -200,8 +222,11 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, float | int | str | bool
     if source.source_url:
         LOGGER.info("Public source URL: %s", source.source_url)
 
+    model_weights = resolve_model_weights(args.model_weights)
+    LOGGER.info("Model weights: %s", model_weights)
+
     detector = YOLODetector(
-        weights=args.model_weights,
+        weights=model_weights,
         confidence_threshold=args.confidence_threshold,
         iou_threshold=args.iou_threshold,
         image_size=args.image_size,
@@ -285,7 +310,7 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, float | int | str | bool
         "input_video": str(source.source_path),
         "source_url": args.video_source_link or source.source_url or "local file",
         "downloaded_from_public_source": source.downloaded,
-        "model_weights": args.model_weights,
+        "model_weights": model_weights,
         "tracker_config": str(Path(args.tracker_config).expanduser().resolve()),
         "output_video": str(output_video_path),
         "tracking_csv": str(output_csv_path),

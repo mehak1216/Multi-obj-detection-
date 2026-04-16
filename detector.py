@@ -90,15 +90,24 @@ class YOLODetector:
     def _resolve_weights(weights: str) -> str:
         """Resolve local weights, downloading known Ultralytics assets when needed."""
 
+        project_root = Path(__file__).resolve().parent
         candidate = Path(weights).expanduser()
         if candidate.exists():
+            YOLODetector._validate_weights_file(candidate)
             return str(candidate.resolve())
+
+        if not candidate.is_absolute():
+            project_candidate = (project_root / candidate).resolve()
+            if project_candidate.exists():
+                YOLODetector._validate_weights_file(project_candidate)
+                return str(project_candidate)
 
         if candidate.parent != Path("."):
             return weights
 
-        destination = Path.cwd() / candidate.name
+        destination = project_root / candidate.name
         if destination.exists():
+            YOLODetector._validate_weights_file(destination)
             return str(destination.resolve())
 
         try:
@@ -113,6 +122,25 @@ class YOLODetector:
             if downloaded.resolve() != destination.resolve():
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(downloaded, destination)
+            YOLODetector._validate_weights_file(destination)
             return str(destination.resolve())
 
         return weights
+
+    @staticmethod
+    def _validate_weights_file(weights_path: Path) -> None:
+        """Raise a clearer error when a .pt weights path actually contains text or HTML."""
+
+        if weights_path.suffix.lower() != ".pt" or not weights_path.is_file():
+            return
+
+        header = weights_path.read_bytes()[:512]
+        if not header:
+            raise RuntimeError(f"Model weights file is empty: {weights_path}")
+
+        text_prefixes = (b"\n", b"\r", b"<", b"{", b"[", b"version ", b"<!DOCTYPE", b"<?xml")
+        if any(header.startswith(prefix) for prefix in text_prefixes):
+            raise RuntimeError(
+                "Model weights file is not a valid PyTorch .pt binary. "
+                f"Please replace or delete the bad file and use a real YOLO weights file: {weights_path}"
+            )
