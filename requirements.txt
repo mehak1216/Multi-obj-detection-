@@ -1,6 +1,7 @@
 # Recommended interpreter: Python 3.12 for Streamlit Community Cloud.
 # Python 3.13+ can force incompatible source builds for this pinned scientific stack.
-ultralytics==8.2.103
+# Keep Ultralytics new enough for the default YOLO11 weights used by the app.
+ultralytics==8.4.37
 # Use the headless build for Streamlit/server deployments where GUI libs are unavailable.
 opencv-python-headless==4.9.0.80
 numpy==1.26.4

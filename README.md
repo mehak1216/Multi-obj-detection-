@@ -80,7 +80,7 @@ python main.py
  python main.py --video-path "/Users/riteshsingh/Downloads/294-135882925.mp4" --video-source-link "https://pixabay.com/videos/running-people-sports-run-walk-294/"
 ```
 
-The default profile now favors speed by using `yolo11n.pt` and `--image-size 640`. If the nano weights are not present locally, Ultralytics will download them on the first run.
+The default profile now favors speed by using `yolo11n.pt` and `--image-size 640`. If the nano weights are not present locally, Ultralytics will download them on the first run. Because `yolo11n.pt` requires a newer Ultralytics release, keep the installed package aligned with `requirements.txt` or switch to an older weight such as `yolov8n.pt`.
 
 Run with your own public or local video:
 

@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Sequence
 
 import numpy as np
+import ultralytics
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 from ultralytics.utils.downloads import attempt_download_asset
@@ -42,7 +43,10 @@ class YOLODetector:
         self.classes = list(classes) if classes else None
         self.device = device
 
-        self.model = YOLO(self.weights)
+        try:
+            self.model = YOLO(self.weights)
+        except Exception as exc:
+            self._raise_model_compatibility_error(exc)
 
     def predict(self, frame: np.ndarray) -> list[Detection]:
         """Run plain object detection on a single frame."""
@@ -144,3 +148,17 @@ class YOLODetector:
                 "Model weights file is not a valid PyTorch .pt binary. "
                 f"Please replace or delete the bad file and use a real YOLO weights file: {weights_path}"
             )
+
+    def _raise_model_compatibility_error(self, exc: Exception) -> None:
+        """Convert common Ultralytics/model mismatch errors into actionable guidance."""
+
+        message = str(exc)
+        weights_name = Path(self.weights).name.lower()
+        if "can't get attribute 'c3k2'" in message.lower() or ("yolo11" in weights_name and "c3k2" in message.lower()):
+            raise RuntimeError(
+                "The selected YOLO weights are newer than the installed Ultralytics package. "
+                f"Current Ultralytics version: {ultralytics.__version__}. "
+                "Upgrade Ultralytics to a YOLO11-compatible version such as the pinned requirement in this repo, "
+                "or switch the model weights field to an older model like yolov8n.pt."
+            ) from exc
+        raise exc
