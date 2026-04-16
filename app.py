@@ -567,15 +567,6 @@ def render_media_tab(summary: dict[str, object]) -> None:
             st.markdown("#### Browser Preview")
             st.image(str(preview_gif_path), use_column_width=True)
             st.caption("Animated GIF preview for browsers/environments that cannot play the encoded MP4 inline.")
-        if video_path.exists():
-            st.markdown("#### Full Output Video")
-            st.video(str(video_path))
-            st.caption(
-                "If the player stays at 0:00, the file was likely encoded with a codec your browser cannot preview inline. "
-                "Use the GIF preview above or the download button below."
-            )
-        else:
-            st.warning("The output video was not found.")
 
     with right:
         st.markdown("### Trajectory Summary")
