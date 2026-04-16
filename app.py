@@ -551,7 +551,6 @@ def render_media_tab(summary: dict[str, object]) -> None:
     left, right = st.columns([1.35, 1.0], gap="large")
 
     with left:
-        st.markdown('<div class="surface-card">', unsafe_allow_html=True)
         st.markdown("### Annotated Video")
         st.markdown(
             '<p class="section-note">Rendered output with persistent IDs and trajectories overlaid.</p>',
@@ -565,10 +564,8 @@ def render_media_tab(summary: dict[str, object]) -> None:
             )
         else:
             st.warning("The output video was not found.")
-        st.markdown("</div>", unsafe_allow_html=True)
 
     with right:
-        st.markdown('<div class="surface-card">', unsafe_allow_html=True)
         st.markdown("### Trajectory Summary")
         st.markdown(
             '<p class="section-note">Snapshot of accumulated track paths from the run.</p>',
@@ -578,7 +575,6 @@ def render_media_tab(summary: dict[str, object]) -> None:
             st.image(str(image_path), use_container_width=True)
         else:
             st.warning("The trajectory summary image was not found.")
-        st.markdown("</div>", unsafe_allow_html=True)
 
 
 def render_data_tab(summary: dict[str, object], dataframe: pd.DataFrame | None) -> None:
