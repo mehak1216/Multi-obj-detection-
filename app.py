@@ -4,11 +4,17 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from datetime import datetime
 from pathlib import Path
 from types import SimpleNamespace
 
 import pandas as pd
+
+# Apply the watcher setting before importing Streamlit so Cloud startup
+# doesn't probe PyTorch internals while resolving watched paths.
+os.environ.setdefault("STREAMLIT_SERVER_FILE_WATCHER_TYPE", "none")
+
 import streamlit as st
 
 from main import (
